@@ -1,0 +1,8 @@
+{
+  "name": "Health Assessment & Triage",
+  "description": "An interactive clinical triage simulator to train and evaluate Emergency Department assessment decisions with high-fidelity patient cases and AI scenario synthesis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
