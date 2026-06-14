@@ -370,6 +370,7 @@ function generateFallbackLearningRecap(sessionResults: any[]) {
   const totalCount = sessionResults.length;
   const accuracyRate = Math.round((correctCount / totalCount) * 100);
   const incorrectCases = sessionResults.filter((r: any) => !r.isCorrect);
+  
 
   const keyPearls = [
     "Algoritma START/ESI adalah standar triage yang mengutamakan ABC (Airway, Breathing, Circulation) sebelum kondisi lainnya",
