@@ -34,7 +34,7 @@ app.get("/api/health", (req, res) => {
 // Helper function to synthesize scenario with retry & fallback models
 async function generatePatientWithRetryAndFallback(ai: Groq, prompt: string) {
   // Groq models that support JSON mode
-  const modelsToTry = ["mixtral-8x7b-32768", "llama-3.1-70b-versatile"];
+  const modelsToTry = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
   let lastError: any = null;
 
   for (const model of modelsToTry) {
@@ -149,7 +149,7 @@ app.post("/api/evaluate-and-quiz", async (req, res) => {
   }
 
   try {
-    const prompt = `Anda adalah ahli edukasi kedokteran gawat darurat dan triage UGD di Indonesia yang ramah dan suportif.
+    const prompt = `Anda adalah ahli edukasi kedokteran gawat darurat dan triage UGD di Indonesia yang sangat ramah, suportif, dan profesional.
 Evaluasilah keputusan triage pengguna untuk kasus pasien berikut:
 - Nama Pasien: ${patientCase.name}
 - Usia: ${patientCase.age}
@@ -160,18 +160,24 @@ Evaluasilah keputusan triage pengguna untuk kasus pasien berikut:
 - Keputusan Triage Pengguna: ${userDecision} (green atau yellow atau red)
 
 Tugas Anda:
-1. Berikan analisis klinis interaktif (rationale) mengapa pilihan pengguna tepat atau jika kurang tepat kenapa demikian, didasarkan pada algoritma START atau ESI. Buat penjelasan ini mendalam, mendidik, ramah, dan ringkas dalam Bahasa Indonesia yang profesional dan baku medis. Anda harus menjelaskan patofisiologi tanda-tanda vital terhadap keluhannya.
+1. Berikan analisis klinis interaktif (rationale) mengapa pilihan pengguna tepat atau jika kurang tepat kenapa demikian, didasarkan pada algoritma triage standar seperti START (Simple Triage and Rapid Treatment), ESI (Emergency Severity Index), dan pedoman klinis ATLS (Advanced Trauma Life Support).
+   Penjelasan harus mendalam, edukatif, ramah, dan ringkas dalam Bahasa Indonesia medis baku yang profesional. Jelaskan hubungan patofisiologi antara tanda-tanda vital dengan keluhan utama pasien.
 
-2. Hasilkan LIMA (5) soal kuis pilihan ganda yang sangat relevan dan mendalam terkait skenario di atas. Setiap soal harus berbeda fokus:
-   - Kuis 1: Interpretasi tanda vital utama / patofisiologi
-   - Kuis 2: Algoritma triage START/ESI yang tepat
-   - Kuis 3: Tindakan medis prioritas pertama
-   - Kuis 4: Diagnosis banding atau kondisi klinis terkait
-   - Kuis 5: Monitoring atau komplikasi potensial
+2. Hasilkan LIMA (5) soal kuis pilihan ganda yang sangat relevan dan mendalam terkait skenario di atas dengan mematuhi ketentuan berikut:
+   - Kuis 1: Interpretasi tanda vital utama / patofisiologi (menghubungkan keluhan dengan status tanda vital sesuai kriteria Oh & Jung 2024 tentang signifikansi modifier tanda vital).
+   - Kuis 2: Algoritma triage START/ESI yang tepat (menjelaskan klasifikasi Merah/Kuning/Hijau berdasarkan parameter fisiologis).
+   - Kuis 3: Tindakan medis prioritas pertama berdasarkan protokol ATLS (misalnya: manajemen Airway dengan proteksi servikal, Breathing dengan dekompresi jarum jika tension pneumotoraks, Circulation dengan balut tekan/tourniquet/resusitasi cairan jika syok hemoragik).
+   - Kuis 4: Diagnosis banding (differential diagnosis) atau kondisi klinis terkait yang paling mungkin terjadi.
+   - Kuis 5: Monitoring penting atau komplikasi potensial yang wajib diwaspadai (misalnya: refleks Cushing untuk cedera otak berat, sindrom kompartemen untuk patah tulang, edema laring untuk luka bakar inhalasi).
 
-Setiap kuis harus memiliki 4 opsi berlabel A, B, C, D, kunci jawaban yang benar, dan penjelasan detail.
+PENTING UNTUK PEMBUATAN SOAL & JAWABAN:
+- Kuis harus berakar kuat pada bukti medis dan skenario pasien.
+- Setiap kuis harus memiliki 4 opsi berlabel A, B, C, D.
+- HANYA boleh ada SATU opsi jawaban yang secara klinis benar. Tiga opsi lainnya harus berupa pengecoh (distractor) yang realistis secara medis tetapi secara objektif salah atau bukan prioritas utama.
+- Berikan penjelasan (explanation) yang mendalam untuk setiap kuis yang menerangkan MENGAPA kunci jawaban itu benar dan mengapa pilihan lainnya kurang tepat.
+- Seluruh teks soal, pilihan jawaban, dan penjelasan harus ditulis menggunakan Bahasa Indonesia medis baku yang benar dan profesional, tanpa istilah yang membingungkan atau "ngelantur".
 
-IMPORTANT: Respond with ONLY valid JSON in this exact format:
+IMPORTANT: Respond with ONLY valid JSON in this exact format (do not add any markdown formatting around or outside of the JSON block):
 {
   "rationale": "Ulasan evaluasi keputusan triage di sini dalam Bahasa Indonesia (sekitar 3-5 kalimat).",
   "quizzes": [
@@ -179,36 +185,36 @@ IMPORTANT: Respond with ONLY valid JSON in this exact format:
       "question": "Kalimat pertanyaan kuis 1",
       "options": ["Opsi A", "Opsi B", "Opsi C", "Opsi D"],
       "correctAnswer": "A",
-      "explanation": "Penjelasan detail"
+      "explanation": "Penjelasan detail mengapa opsi A benar dan yang lain salah."
     },
     {
       "question": "Kalimat pertanyaan kuis 2",
       "options": ["Opsi A", "Opsi B", "Opsi C", "Opsi D"],
       "correctAnswer": "B",
-      "explanation": "Penjelasan detail"
+      "explanation": "Penjelasan detail mengapa opsi B benar dan yang lain salah."
     },
     {
       "question": "Kalimat pertanyaan kuis 3",
       "options": ["Opsi A", "Opsi B", "Opsi C", "Opsi D"],
       "correctAnswer": "C",
-      "explanation": "Penjelasan detail"
+      "explanation": "Penjelasan detail mengapa opsi C benar dan yang lain salah."
     },
     {
       "question": "Kalimat pertanyaan kuis 4",
       "options": ["Opsi A", "Opsi B", "Opsi C", "Opsi D"],
       "correctAnswer": "D",
-      "explanation": "Penjelasan detail"
+      "explanation": "Penjelasan detail mengapa opsi D benar dan yang lain salah."
     },
     {
       "question": "Kalimat pertanyaan kuis 5",
       "options": ["Opsi A", "Opsi B", "Opsi C", "Opsi D"],
       "correctAnswer": "A",
-      "explanation": "Penjelasan detail"
+      "explanation": "Penjelasan detail mengapa opsi A benar dan yang lain salah."
     }
   ]
 }`;
 
-    const modelsToTry = ["llama-3.1-8b-instant"];
+    const modelsToTry = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
     let textResult = "";
     let lastError: any = null;
 
@@ -223,7 +229,7 @@ IMPORTANT: Respond with ONLY valid JSON in this exact format:
               content: prompt,
             }
           ],
-          temperature: 1,
+          temperature: 0.7,
           max_tokens: 4096,
           response_format: { type: "json_object" },
         });
@@ -233,7 +239,7 @@ IMPORTANT: Respond with ONLY valid JSON in this exact format:
         }
       } catch (err) {
         lastError = err;
-        console.warn(`[AI Evaluation Warning] Model ${model} failed, testing next option...`);
+        console.warn(`[AI Evaluation Warning] Model ${model} failed:`, err);
       }
     }
 
@@ -316,22 +322,37 @@ PENTING: Respond dengan ONLY valid JSON dalam format ini:
   "summary": "Ringkasan sesi singkat dan motivasional..."
 }`;
 
-    const response = await ai.chat.completions.create({
-      model: "llama-3.1-8b-instant",
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      temperature: 1,
-      max_tokens: 2048,
-      response_format: { type: "json_object" },
-    });
+    const modelsToTry = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
+    let text = "";
+    let lastError: any = null;
 
-    const text = response.choices[0]?.message?.content;
+    for (const model of modelsToTry) {
+      try {
+        console.log(`[AI Learning Summary] Generating with ${model}...`);
+        const response = await ai.chat.completions.create({
+          model: model,
+          messages: [
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          temperature: 0.7,
+          max_tokens: 2048,
+          response_format: { type: "json_object" },
+        });
+        if (response.choices[0]?.message?.content) {
+          text = response.choices[0].message.content;
+          break;
+        }
+      } catch (err) {
+        lastError = err;
+        console.warn(`[AI Learning Summary Warning] Model ${model} failed:`, err);
+      }
+    }
+
     if (!text) {
-      throw new Error("Respons kosong dari Groq");
+      throw lastError || new Error("Respons kosong dari Groq");
     }
 
     const data = JSON.parse(text.trim());
